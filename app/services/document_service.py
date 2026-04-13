@@ -64,7 +64,7 @@ class DocumentService:
                 if tokens.get("status") == "failed": status_ia = "partial_failure"
             
             # 3. Persistência dos dados no banco de dados
-            await document_repository.save_batch_data(db, documents_raw)
+            # await document_repository.save_batch_data(db, documents_raw)
 
         # 4. Preparar Excel
         df_anomalias = pd.DataFrame(all_enriched_hits)

@@ -76,23 +76,14 @@ class AnomalyService:
             hits.append({"arquivo": row['ARQUIVO_ORIGEM'], "anomalia": "Valor bruto inválido", "slug": "valor_invalido", "criticidade": "Alta", "contexto_ia": f"Valor extraído: {val_num}"})
 
     def validate_divergent_cnpj(self, df: pd.DataFrame, hits: List[Dict[str, Any]]):
-        """Regra: Marca apenas o CNPJ que aparece menos vezes para um mesmo fornecedor."""
-        # Agrupa por Fornecedor e CNPJ para contar as ocorrências de cada par
         counts = df.groupby(['_tmp_fornecedor', 'CNPJ_FORNECEDOR']).size().reset_index(name='qtd')
-        
-        # Para cada fornecedor, identifica qual o CNPJ 'majoritário' (o que mais aparece)
         for fornecedor in counts['_tmp_fornecedor'].unique():
             if not fornecedor: continue
-            
             subset = counts[counts['_tmp_fornecedor'] == fornecedor]
-            if len(subset) > 1: # Existe divergência
-                # O CNPJ com maior contagem é o 'correto' (padrão do lote)
+            if len(subset) > 1:
                 id_max = subset['qtd'].idxmax()
                 cnpj_padrao = subset.loc[id_max, 'CNPJ_FORNECEDOR']
-                
-                # Seleciona as linhas do DF original que possuem o fornecedor mas o CNPJ NÃO é o padrão
                 anomalos = df[(df['_tmp_fornecedor'] == fornecedor) & (df['CNPJ_FORNECEDOR'] != cnpj_padrao)]
-                
                 for _, row in anomalos.iterrows():
                     hits.append({
                         "arquivo": row['ARQUIVO_ORIGEM'],
@@ -101,6 +92,18 @@ class AnomalyService:
                         "criticidade": "Alta",
                         "contexto_ia": f"O CNPJ {row['CNPJ_FORNECEDOR']} divergiu do padrão identificado no lote ({cnpj_padrao}) para o fornecedor {row['FORNECEDOR']}."
                     })
+
+    def validate_encoding(self, row: pd.Series, hits: List[Dict[str, Any]]):
+        """Regra: Valida se o encoding é UTF-8 ou ASCII."""
+        enc = str(row.get('ENCODING', '')).lower()
+        if enc not in ['utf-8', 'ascii']:
+            hits.append({
+                "arquivo": row['ARQUIVO_ORIGEM'],
+                "anomalia": "Encoding inválido",
+                "slug": "encoding_invalido",
+                "criticidade": "Média",
+                "contexto_ia": f"O arquivo possui encoding '{enc}', mas são aceitos apenas UTF-8 ou ASCII."
+            })
 
     def validate_inconsistent_dates(self, row: pd.Series, hits: List[Dict[str, Any]]):
         dt_emissao = self.parse_date(row.get('DATA_EMISSAO_NF'))
@@ -140,6 +143,7 @@ class AnomalyService:
         self.validate_divergent_cnpj(df, hits)
 
         for _, row in df.iterrows():
+            self.validate_encoding(row, hits)
             self.validate_numeric_value(row, hits)
             self.validate_inconsistent_dates(row, hits)
             self.validate_status_conflict(row, hits)
