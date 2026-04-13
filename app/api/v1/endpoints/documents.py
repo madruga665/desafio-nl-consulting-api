@@ -12,7 +12,7 @@ async def process_zip(file: UploadFile = File(...)):
     """
     # Validar se o arquivo é um ZIP
     if not isinstance(file.filename, str) or not file.filename.lower().endswith(".zip"):
-        raise HTTPException(status_code=400, detail="O arquivo deve ser um .zip")
+        raise HTTPException(status_code=400, detail="O arquivo enviado é inválido. O arquivo precisa ser .zip")
 
     try:
         # Ler o conteúdo do arquivo
