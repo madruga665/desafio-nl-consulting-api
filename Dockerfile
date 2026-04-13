@@ -44,5 +44,5 @@ EXPOSE 8000
 
 # Comando de inicialização otimizado para produção:
 # 1. alembic upgrade head: Garante que o banco está atualizado
-# 2. fastapi run: Comando moderno do FastAPI para produção (gerencia workers e porta dinâmica)
+# 2. fastapi run: Comando moderno do FastAPI para produção
 CMD ["sh", "-c", "alembic upgrade head && fastapi run app/main.py --port ${PORT:-8000}"]
