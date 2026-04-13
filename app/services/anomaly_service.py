@@ -202,7 +202,7 @@ class AnomalyService:
             mean_val = float(stats["mean"])  # type: ignore
             count_val = int(stats["count"])  # type: ignore
             val_atual = float(row["_tmp_val_numeric"])  # type: ignore
-            if count_val > 1 and val_atual > mean_val:
+            if count_val > 1 and val_atual > (mean_val * 1.5):
                 hits.append(
                     {
                         "arquivo": row["ARQUIVO_ORIGEM"],
