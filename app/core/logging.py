@@ -33,7 +33,7 @@ def setup_loki_logging():
             handler = logging_loki.LokiQueueHandler(
                 Queue(-1),
                 url=loki_url,
-                tags={"application": settings.PROJECT_NAME, "env": "production"},
+                tags={"app": settings.PROJECT_NAME, "env": "production"},
                 auth=auth,
                 version="1",
             )
