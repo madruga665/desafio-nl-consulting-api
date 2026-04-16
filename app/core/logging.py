@@ -36,6 +36,7 @@ def setup_loki_logging():
                 tags={"app": settings.PROJECT_NAME, "env": "production"},
                 auth=auth,
                 version="1",
+                json = True,
             )
             logger.addHandler(handler)
             logger.info(f"Loki logging configurado (Modo Queue).")
