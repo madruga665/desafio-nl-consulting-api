@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 import re
 from typing import List, Dict, Any, Optional
-
+from app.core.logging import logger
 
 class AnomalyService:
     def parse_date(self, date_str: Any) -> Optional[datetime.datetime]:
@@ -227,6 +227,11 @@ class AnomalyService:
 
     async def run_programmatic_audit(self, df: pd.DataFrame) -> List[Dict[str, Any]]:
         hits = []
+        logger.info(
+            f"Iniciando auditoria programática. Registros no lote: {len(df)}",
+            extra={"tags": {"service": "anomaly_service", "action": "run_audit"}, "batch_size": len(df)}
+        )
+
         df["_tmp_fornecedor"] = df["FORNECEDOR"].apply(self._get_clean_name)
         df["_tmp_aprovador"] = df["APROVADO_POR"].apply(self._get_clean_name)
         df["_tmp_val_numeric"] = df["VALOR_BRUTO"].apply(self.parse_value)
@@ -247,6 +252,11 @@ class AnomalyService:
             self.validate_status_conflict(row, hits)
             self.validate_parsing_errors(row, hits)
             self.validate_value_outliers(row, stats_por_fornecedor, hits)
+
+        logger.info(
+            f"Auditoria programática finalizada. Anomalias encontradas: {len(hits)}",
+            extra={"tags": {"service": "anomaly_service", "action": "run_audit_finish"}, "total_hits": len(hits)}
+        )
 
         df.drop(
             columns=["_tmp_fornecedor", "_tmp_aprovador", "_tmp_val_numeric"],

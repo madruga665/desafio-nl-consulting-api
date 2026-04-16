@@ -8,6 +8,7 @@ from app.services.ai_service import gemini_service
 from app.services.anomaly_service import anomaly_service
 from app.repositories.document_repository import document_repository
 from app.core.database import AsyncSessionLocal
+from app.core.logging import logger
 
 
 class DocumentService:
@@ -18,6 +19,7 @@ class DocumentService:
 
     async def process_zip_file(self, zip_content: bytes) -> bytes:
         documents_raw = []
+        file_formats = set()
         keys_to_ignore = {"DATA_EMISSAO", "ANOMALIAS_SLUGS", "OBSERVACAO"}
 
         # Chaves que DEFINEM o padrão do arquivo .txt
@@ -29,7 +31,13 @@ class DocumentService:
         }
 
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
-            for filename in z.namelist():
+            file_list = z.namelist()
+            for filename in file_list:
+                # Coleta formatos para log posterior
+                if not filename.endswith("/"):
+                    ext = filename.split(".")[-1].lower() if "." in filename else "no_ext"
+                    file_formats.add(ext)
+
                 # Ignorar pastas ou arquivos que não sejam .txt
                 if filename.endswith("/") or not filename.lower().endswith(".txt"):
                     continue
@@ -60,6 +68,16 @@ class DocumentService:
                         data.get("VALOR_BRUTO")
                     )
                     documents_raw.append(data)
+
+        # Log do arquivo .zip
+        logger.info(
+            f"Arquivo ZIP recebido para processamento. Total de arquivos: {len([f for f in file_list if not f.endswith('/')])}",
+            extra={
+                "tags": {"service": "document_service", "action": "process_zip"},
+                "total_files": len(file_list),
+                "file_formats": list(file_formats)
+            }
+        )
 
         if not documents_raw:
             raise ValueError(

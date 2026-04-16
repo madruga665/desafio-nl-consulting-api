@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from typing import Optional
 
 class Settings(BaseSettings):
     """Configurações da aplicação utilizando pydantic-settings."""
@@ -16,6 +17,11 @@ class Settings(BaseSettings):
     # Configurações de IA (necessário preencher no .env)
     OPENAI_API_KEY: str = ""
     GOOGLE_API_KEY: str = ""
+    
+    # Configurações de Logging (Grafana Loki)
+    LOKI_URL: str = "http://localhost:3100/loki/api/v1/push"
+    LOKI_USER_ID: Optional[str] = None
+    LOKI_TOKEN: Optional[str] = None
     
     # Segurança
     SECRET_KEY: str = ""

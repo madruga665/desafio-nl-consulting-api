@@ -3,6 +3,8 @@ import asyncio
 from typing import List, Dict, Any, Tuple
 from google import genai
 from app.core.config import settings
+from app.core.logging import logger
+import datetime
 
 
 class GeminiService:
@@ -62,6 +64,20 @@ class GeminiService:
                         ),
                         "status": "success",
                     }
+
+                    # Log de uso da IA
+                    logger.info(
+                        f"IA utilizada para enriquecimento de anomalias. Modelo: {model_id}, Prompt V: {self.PROMPT_VERSION}",
+                        extra={
+                            "tags": {"service": "ai_service", "action": "enrich_anomalies"},
+                            "ai_metadata": {
+                                "timestamp": datetime.datetime.now().isoformat(),
+                                "model": model_id,
+                                "prompt_version": self.PROMPT_VERSION,
+                                "tokens": token_info
+                            }
+                        }
+                    )
 
                     data = json.loads(response.text or "[]")
                     return data, token_info
