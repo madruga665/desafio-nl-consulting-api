@@ -109,7 +109,7 @@ class DocumentService:
                     status_ia = "partial_failure"
 
             # 3. Persistência
-            await document_repository.save_batch_data(db, documents_raw)
+            # await document_repository.save_batch_data(db, documents_raw)
 
         # 4. Preparar Excel
         df_anomalias = pd.DataFrame(all_enriched_hits)
