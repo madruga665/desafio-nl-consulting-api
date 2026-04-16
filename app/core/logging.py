@@ -16,7 +16,7 @@ def setup_loki_logging():
         try:
             handler = logging_loki.LokiHandler(
                 url=settings.LOKI_URL,
-                tags={"application": settings.PROJECT_NAME, "env": "production"},
+                tags={"app": settings.PROJECT_NAME, "env": "production"},
                 auth=auth,
                 version="1",
             )
